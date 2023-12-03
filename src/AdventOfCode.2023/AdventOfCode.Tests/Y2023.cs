@@ -65,6 +65,7 @@ namespace AdventOfCode.Tests
 			var solver = new Day03.Solver("./inputs/day03.txt");
 			var answer = solver.Part1();
 			_output.WriteLine($"The answer is: {answer}");
+			Assert.Equal(540131, answer);
 		}
 
 		[Fact]
