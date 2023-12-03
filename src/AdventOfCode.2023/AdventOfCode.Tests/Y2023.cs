@@ -24,6 +24,7 @@ namespace AdventOfCode.Tests
 			var answer = solver.Solve();
 
 			_output.WriteLine($"The answer is: {answer}");
+			Assert.Equal(56397, answer);
 
 		}
 
@@ -39,6 +40,7 @@ namespace AdventOfCode.Tests
 			_output.WriteLine($"The answer is: {answer}");
 
 			Assert.NotEqual(56397, answer);
+			Assert.Equal(55701, answer);
 		}
 
 		[Fact]
@@ -47,6 +49,7 @@ namespace AdventOfCode.Tests
 			var solver = new Day02.Solver("./inputs/day02.txt");
 			var answer = solver.Part1();
 			_output.WriteLine($"The answer is: {answer}");
+			Assert.Equal(2439, answer);
 		}
 
 		[Fact]
@@ -55,6 +58,7 @@ namespace AdventOfCode.Tests
 			var solver = new Day02.Solver("./inputs/day02.txt");
 			var answer = solver.Part2();
 			_output.WriteLine($"The answer is: {answer}");
+			Assert.Equal(63711, answer);
 		}
 
 		[Fact]
@@ -74,8 +78,11 @@ namespace AdventOfCode.Tests
 			// https://adventofcode.com/2023/day/3#part2
 
 			var solver = new Day03.Solver("./inputs/day03.txt");
-			var answer = solver.Part1();
+			var answer = solver.Part2();
 			_output.WriteLine($"The answer is: {answer}");
+			Assert.NotEqual(540131, answer);
+			Assert.True(answer > 336615);
+			Assert.Equal(86879020, answer);
 		}
 
 		//[Fact]

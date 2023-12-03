@@ -23,6 +23,12 @@ namespace AdventOfCode.Y2023.Day03
 			var engine = new Engine(_inputs);
 			return engine.PartNumbers.Sum(n => n.Value);
 		}
+
+		public int Part2()
+		{
+			var engine = new Engine(_inputs);
+			return engine.Gears.Sum(n => n.Ratio);
+		}
 	}
 
 	public class Engine
@@ -39,6 +45,12 @@ namespace AdventOfCode.Y2023.Day03
 			}
 
 			PartNumbers = FindPartNumbers();
+			Gears = FindGears();
+		}
+
+		private IEnumerable<Gear> FindGears()
+		{
+			return Symbols.Where(s => s.AdjacentNumbers.Count() == 2).Select(s => new Gear(s));
 		}
 
 		private IEnumerable<Number> FindPartNumbers()
@@ -46,14 +58,74 @@ namespace AdventOfCode.Y2023.Day03
 			var candidates = new List<Number>();
 			foreach (var symbol in Symbols)
 			{
-				var adjacents = FindAdjacentCells(symbol.Cell);
-				foreach (var cell in adjacents)
-				{
-					candidates.AddRange(Numbers.Where(n => ContainsCell(n, cell)));
-				}
+				candidates.AddRange(symbol.AdjacentNumbers);
 			}
 
 			return candidates.Distinct();
+		}
+
+		private IEnumerable<Number> FindNumbers(int number, string line)
+		{
+			var regex = new Regex(@"(\d+)");
+			var matches = regex.Match(line);
+
+			while (matches.Success)
+			{
+				yield return new Number(this, number, matches!); 
+				matches = matches.NextMatch();
+			}
+		}
+
+		private IEnumerable<Symbol> FindSymbols(int number, string line)
+		{
+			var regex = new Regex(@"([^\.^\d^\s])");
+			var matches = regex.Match(line);
+
+			while (matches.Success)
+			{
+				yield return new Symbol(this, number, matches!);
+				matches = matches.NextMatch();
+			}
+		}
+
+		public IEnumerable<Number> PartNumbers { get; }
+		public List<Number> Numbers { get; } = new List<Number>();
+		public List<Symbol> Symbols { get; } = new List<Symbol>();
+		public IEnumerable<Gear> Gears { get; } = new List<Gear>();
+	}
+
+	public class Gear : Symbol
+	{
+		public Gear(Engine engine, int number, Match match) : base(engine, number, match)
+		{
+			Ratio = AdjacentNumbers.Sum(n => n.Value);
+		}
+
+		public Gear(Symbol symbol) : base(symbol)
+		{
+			foreach (var number in AdjacentNumbers)
+			{
+				if (Ratio == 0)
+					Ratio = number.Value;
+				else
+					Ratio *= number.Value;
+			}
+		}
+
+		public int Ratio { get; }
+	}
+
+	public class Symbol : NumberOrSymbol<string>
+	{
+		public Symbol(Engine engine, int number, Match match) : base(engine, number, match) { }
+
+		protected Symbol(Symbol symbol) : base(symbol)
+		{
+		}
+
+		protected override string ParseValue(string value)
+		{
+			return value;
 		}
 
 		private static bool ContainsCell(Number number, Cell cell)
@@ -73,42 +145,19 @@ namespace AdventOfCode.Y2023.Day03
 			yield return new Cell { Row = center.Row, Column = center.Column - 1 };
 		}
 
-		private IEnumerable<Number> FindNumbers(int number, string line)
+		public IEnumerable<Number> AdjacentNumbers
 		{
-			var regex = new Regex(@"(\d+)");
-			var matches = regex.Match(line);
-
-			while (matches.Success)
+			get
 			{
-				yield return new Number(number, matches!); 
-				matches = matches.NextMatch();
+				var candidates = new List<Number>();
+				var adjacents = FindAdjacentCells(Cell);
+				foreach (var cell in adjacents)
+				{
+					candidates.AddRange(Engine.Numbers.Where(n => ContainsCell(n, cell)));
+				}
+
+				return candidates.Distinct();
 			}
-		}
-
-		private IEnumerable<Symbol> FindSymbols(int number, string line)
-		{
-			var regex = new Regex(@"([^\.^\d^\s])");
-			var matches = regex.Match(line);
-
-			while (matches.Success)
-			{
-				yield return new Symbol(number, matches!);
-				matches = matches.NextMatch();
-			}
-		}
-
-		public IEnumerable<Number> PartNumbers { get; }
-		public List<Number> Numbers { get; } = new List<Number>();
-		public List<Symbol> Symbols { get; } = new List<Symbol>();
-	}
-
-	public class Symbol : NumberOrSymbol<string>
-	{
-		public Symbol(int number, Match match) : base(number, match) { }
-
-		protected override string ParseValue(string value)
-		{
-			return value;
 		}
 
 		public Cell Cell => Start;
@@ -151,7 +200,7 @@ namespace AdventOfCode.Y2023.Day03
 
 	public class Number : NumberOrSymbol<int>
 	{
-		public Number(int number, Match match) : base(number, match)
+		public Number(Engine engine, int number, Match match) : base(engine, number, match)
 		{
 			for (var index = Position; index <= Ending; index++)
 			{
@@ -167,11 +216,12 @@ namespace AdventOfCode.Y2023.Day03
 		public List<Cell> Cells { get; } = new List<Cell>();
 	}
 
-	[DebuggerDisplay("({Line},{Position}): {Value}")]
+	[DebuggerDisplay("{GetType().Name} ({Line},{Position}): {Value}")]
 	public abstract class NumberOrSymbol<TValue>
 	{
-		public NumberOrSymbol(int number, Match match)
+		public NumberOrSymbol(Engine engine, int number, Match match)
 		{
+			Engine = engine;
 			Line = number;
 			Position = match.Index;
 			Length = match.Length;
@@ -180,10 +230,22 @@ namespace AdventOfCode.Y2023.Day03
 			End = new Cell { Row = Line, Column = Ending };
 		}
 
+		protected NumberOrSymbol(NumberOrSymbol<TValue> numberOrSymbol)
+		{
+			Engine = numberOrSymbol.Engine;
+			Line = numberOrSymbol.Line;
+			Position = numberOrSymbol.Position;
+			Length = numberOrSymbol.Length;
+			Value = numberOrSymbol.Value;
+			Start = new Cell { Row = Line, Column = Position };
+			End = new Cell { Row = Line, Column = Ending };
+		}
+
 		public int Length { get; set; }
 
 		public int Position { get; set; }
 
+		public Engine Engine { get; }
 		public int Line { get; set; }
 
 		public int Ending => Position + Length - 1;
