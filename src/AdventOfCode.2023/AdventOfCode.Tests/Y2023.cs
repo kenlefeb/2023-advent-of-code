@@ -2,6 +2,7 @@ using AdventOfCode.Y2023;
 using Day02 = AdventOfCode.Y2023.Day02;
 using Day03 = AdventOfCode.Y2023.Day03;
 using Day04 = AdventOfCode.Y2023.Day04;
+using Day05 = AdventOfCode.Y2023.Day05;
 using Xunit.Abstractions;
 
 namespace AdventOfCode.Tests
@@ -108,25 +109,17 @@ namespace AdventOfCode.Tests
 			Assert.Equal(6420979, answer);
 		}
 
-		//[Fact]
-		//public void Day02A()
-		//{
-		//	// https://adventofcode.com/2023/day/2
-		//
-		//	var solver = new Solver("./inputs/day02.txt");
-		//	var answer = solver.Part1();
-		//	_output.WriteLine($"The answer is: {answer}");
-		//}
 
-		//[Fact]
-		//public void Day02B()
-		//{
-		//	// https://adventofcode.com/2023/day/2#part2
-		//
-		//	var solver = new Solver("./inputs/day02.txt");
-		//	var answer = solver.Part1();
-		//	_output.WriteLine($"The answer is: {answer}");
-		//}
+		[Fact]
+		public void Day05A()
+		{
+			// https://adventofcode.com/2023/day/5
+
+			var solver = new Day05.Solver("./inputs/day05.txt");
+			var answer = solver.Part1();
+			_output.WriteLine($"The answer is: {answer}");
+			Assert.Equal(25174, answer);
+		}
 
 	}
 }
